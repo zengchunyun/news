@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load urlextend %}
+{% block container %}
+    <div class="row" style="background-color: #f2f2f2">
+        <div class="col-md-8">
+            {% for article in article_list %}
+                <div class="row" style="margin-bottom: 35px">
+                    <div class="col-md-4">
+                        <img src="/static/{{ article.head_img|show_img }}" width="100%">
+                    </div>
+                    <div class="col-md-8">
+                        <h3 style="margin-bottom: 15px;font-size: 16px;margin-top: -1px"><a href="{% url 'article_detail' article.id %}">{{ article.title }}</a></h3>
+                        <div style="margin-bottom: 15px;color: #bbb">
+                            <a><span><img src="/static/{{ article.author.head_img|show_img }}" width="19" height="19"> {{ article.author }}</span></a>
+                            {{ article.pub_date|diff_time }}
+                            {% resolve_comment article as comment_types %}
+                            <button type="button" class="btn btn-sm btn-success" name="add-thumbs" article-id="{{ article.id }}"><span class="glyphicon glyphicon-thumbs-up" > {% if not comment_types.2 %}0{% endif %}{{ comment_types.2 }}</span></button>
+                            <button type="button" class="btn btn-sm btn-success" name="get-comment"><span class="glyphicon glyphicon-comment" > {% if not comment_types.1 %}0{% endif %}{{ comment_types.1 }}</span></button>
+                        </div>
+                        <div style="color: #999">{{ article.brief }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <div>
+                <div class="" style="height: 480px;background-color: #ececec">
+                    聊天室
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+
+{% block js %}
+    <script>
+    function GetCSRF() {
+        return $('input[name="csrfmiddlewaretoken"]').val()
+    }
+
+    $(document).ready(function () {
+        $("button[name='add-thumbs']").click(function () {
+            var article_id = $(this).attr('article-id');
+            $.post(
+                    "{% url 'post_comment' %}",
+                    {
+                        article_id: article_id,
+                        parent_id:null,
+                        comment_type: 2,
+                        comment: null,
+                        csrfmiddlewaretoken: GetCSRF()
+                    },
+                    function (callback) {
+                        console.log(callback)
+                        var before = parseInt($("button[article-id="+article_id+ "]").find('span').text());
+                        console.log(before,99)
+                        $("button[article-id="+article_id+ "]").find('span').text(' '+ (before + 1));
+
+                    }
+            )
+        });
+    });
+
+    </script>
+{% endblock %}

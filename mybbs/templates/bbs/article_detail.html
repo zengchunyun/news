@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load urlextend %}
+{% block container %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="">
+                <h1>{{ article_obj.title }}</h1>
+                <div style="margin: 15px;color: #bbb">
+                    <a><span><img src="/static/{{ article_obj.author.head_img|show_img }}" width="19" height="19"> {{ article_obj.author }}</span></a>
+                    {{ article_obj.pub_date }}
+                    {% resolve_comment article_obj as comment_types %}
+                </div>
+                <img src="/static/{{ article_obj.head_img|show_img }}" width="100%">
+                <div style="line-height: 30px;font-size: 16px;margin: 20px 0">{{ article_obj.content|safe }}</div>
+
+{#                获取评论#}
+                <div class="row" style="line-height: 100px">
+                    <div class="col-md-4"><a style="color: #333;font-size: 16px;text-decoration: none" href="">默认评论</a>|
+                        <a style="color: #bbb;font-size: 16px;text-decoration: none" href="">最新评论</a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div style="margin-bottom: 20px">
+                        <button type="button" class="btn btn-sm btn-success" name="add-thumbs"><span class="glyphicon glyphicon-thumbs-up" > {% if not comment_types.2 %}0{% endif %}{{ comment_types.2 }}</span></button>
+                        <button type="button" class="btn btn-sm btn-success" name="get-comment"><span class="glyphicon glyphicon-comment" > {% if not comment_types.1 %}0{% endif %}{{ comment_types.1 }}</span></button>
+                        <a><span><img src="/static/{{ article_obj.author.head_img|show_img }}" width="19" height="19"> {{ article_obj.author }}</span></a>
+                        <span style="color: #bbb"> {{ article_obj.pub_date|diff_time }}</span>
+                    </div>
+
+                </div>
+                <div class="row hide" style="background-color: #fafafa" id="show-commnet">
+                </div>
+            {#            发表评论#}
+                <div style="margin-top: 20px">
+                    {% if request.user.is_authenticated %}
+                        <div id="comment_box">
+                            <textarea class="form-control" rows="8"></textarea>
+                            <div style="margin-top: 15px">
+                                <button id="sbt-comment" type="button" class="btn btn-success col-xs-offset-10">发表评论</button>
+                            </div>
+                        </div>
+                    {% else %}
+                    <div class="jumbotron" style="background-color: #fafafa;height: 220px">
+                        <h4 class="text-center" style="line-height: 100px">
+                            <a class="btn-link" href="{% url 'login' %}?next={{ request.path }}" role="button">登录</a>
+                            后参与评论
+                        </h4>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+    function GetCSRF() {
+        return $('input[name="csrfmiddlewaretoken"]').val()
+    }
+
+    //提交点赞或评论
+    function AjaxSubmit(url,type,ppid, pid, comment, callfunction) {
+        $.post(
+                url,
+                {
+                    article_id:pid,
+                    parent_id:ppid,
+                    comment_type:type,
+                    comment: comment,
+                    csrfmiddlewaretoken:GetCSRF()
+                },
+                function (callback) {
+                    if(typeof callfunction === "function"){
+                        callfunction(callback);
+                    }
+                }
+            )
+    }
+
+    //获取评论
+    function GetCommnets() {
+        $.get(
+                "{% url 'get_comments' article_obj.id %}",
+                function(callback){
+                    $("#show-commnet").html(callback);
+                }
+        )
+    }
+    
+    $(document).ready(function () {
+
+        //点赞操作
+        $("button[name='add-thumbs']").click(function () {
+            function callaction() {
+                var before = parseInt($("button[name='add-thumbs']").find('span').text());
+                $("button[name='add-thumbs']").find('span').text(' '+ (before + 1));
+            }
+            AjaxSubmit(
+                    '{% url 'post_comment' %}',
+                    2,
+                    null,
+                    '{{ article_obj.id }}',
+                    null,
+                    callaction
+            );
+        });
+
+        //评论操作
+        $("#sbt-comment").click(function () {
+            var comment_text = $("#comment_box").find('textarea').val();
+            if(comment_text.trim().length < 5){
+                alert("客观,8字起评,不讲价")
+            }else {
+                //只取最后一次点击回复的那个人文章ID
+                var ppid = $("#comment_box").prevAll('span[commentid]').attr('commentid');
+                console.log(ppid)
+                if(!ppid){
+                    ppid = null;
+                }
+                AjaxSubmit(
+                        '{% url 'post_comment' %}',
+                        1,
+                        ppid,
+                        '{{ article_obj.id }}',
+                        comment_text.trim(),
+                        GetCommnets
+                );
+                $("#comment_box").find('textarea').val('');
+                var before = parseInt($("button[name='get-comment']").find('span').text());
+                $("button[name='get-comment']").find('span').text(' '+ (before + 1));
+            }
+        });
+
+        //获取评论
+        $("button[name='get-comment']").click(function () {
+            $("#show-commnet").toggleClass('hide');
+            GetCommnets();
+        });
+
+        //点击某个用户进行评论
+        $("#show-commnet").delegate('span[comment]', 'click', function () {
+            $("#comment_box").prevAll().remove();
+            $("#comment_box").before('<span class="btn-warning" commentid='+$(this).parent('div').attr('commentid')+'>回复:'+$(this).parent('div').attr('username')+'</span><span class="btn-warning img-circle" style="cursor: pointer" cancle=true>取消</span>')
+        });
+
+        //取消对某用户评论
+        $("#comment_box").parent().delegate('span[cancle]','click', function () {
+            $("#comment_box").prevAll().remove();
+        })
+
+    });
+
+    </script>
+{% endblock %}

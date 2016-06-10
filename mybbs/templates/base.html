@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="/static/img/favicon.ico">
+        <title>抽屉新热榜-聚合每日热门、搞笑、有趣资讯</title>
+        <link href="/static/plugins/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/static/plugins/summernote/summernote.css" rel="stylesheet">
+        <link href="/static/css/navbar-fixed-top.css" rel="stylesheet">
+        {% block css %}
+        {% endblock %}
+
+    </head>
+    <body>
+    {% csrf_token %}
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/bbs">抽屉新热榜</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        {% block nav-left %}
+                            {% for category in category_list %}
+                                <li class="{% if category_obj.id == category.id %}active{% endif %}"><a href="{% url 'category' category.id %}">{{ category.name }}</a></li>
+                            {% endfor %}
+                        {% endblock %}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% block nav-right %}
+                                {% if request.user.is_authenticated %}
+                                    <li class="" style="background-color: #00CC00"><a href="{% url 'publish' %}">发布文章</a></li>
+                                    <li class=""><a href="">{{ request.user.userprofile.name }}</a></li>
+                                    <li class=""><a href="{% url 'logout' %}?next={{ request.path }}">注销</a></li>
+                                {% else %}
+                                    <li class=""><a href="{% url 'login' %}?next={{ request.path }}">注册 / 登录</a></li>
+                                {% endif %}
+                        {% endblock %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            {% block container %}
+            {% endblock %}
+        </div>
+        <script src="/static/js/ie-emulation-modes-warning.js"></script>
+        <script src="/static/plugins/jquery/jquery-2.2.4.js"></script>
+        <script src="/static/plugins/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+        <script src="/static/plugins/summernote/summernote.js"></script>
+        <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+
+        {% block js %}
+        {% endblock %}
+    </body>
+</html>

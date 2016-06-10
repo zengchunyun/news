@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+
+{% block container %}
+    {% if error_message %}
+            <span class="bg-danger">{{ error_message }}</span>
+    {% else %}
+        <span class="bg-success">{{ message }}</span>
+    {% endif %}
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+        {% for item in model_form %}
+            <div class="form-group col-sm-7 col-sm-offset-2 col-md-10 col-md-pull-1">
+                <label>{{ item.label_tag }}</label>
+                {{ item }}<span class="bg-danger">{{ item.errors.as_text }}</span>
+            </div>
+        {% endfor %}
+        <input name="author" type="hidden" value="{{ request.user.userprofile.id }}">
+        <button type="submit" id="publish-btn" class="btn btn-success">发布文章</button>
+    </form>
+
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+    $(document).ready(function() {
+        $('#id_content').summernote({
+          height: 400,                 // set editor height
+          minHeight: null,             // set minimum height of editor
+          maxHeight: null,             // set maximum height of editor
+          focus: true                  // set focus to editable area after initializing summernote
+        });
+        $("#publish-btn").click(function () {
+            var getarticle = $("#id_content").summernote('code');
+            console.log(getarticle)
+        });
+        $("form").find("label").next().addClass("form-control");//为表单添加样式
+    });
+  </script>
+{% endblock %}

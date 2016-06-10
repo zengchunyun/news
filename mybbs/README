@@ -1,0 +1,27 @@
+本程序采用Django1.9.6
+
+
+启动前,先切换到项目目录下,执行以下三条命令,初始化项目数据库
+python3.5 manage.py makemigrations  bbs #生成配置SQL语句
+python3.5 manage.py migrate  # 将配置数据同步写入数据库
+python3.5 manage.py createsuperuser  #创建admin后台管理员账号
+
+
+通过python3.5 manage.py runserver 0.0.0.0:8000启动服务
+
+打开浏览器
+访问http://127.0.0.1:8000
+默认管理用户 admin
+密码 P@ssw0rd
+
+
+普通测试用户
+alex
+密码 P@ssw0rd
+
+目前页面首页的点赞,评论操作只做展示,不做其它操作,如需评论点赞,需要进入某篇文章方可进行评论操作
+
+发表的评论想显示出来,需要点击评论次数的按钮,再次点击,该评论会被隐藏
+
+显示评论后,如果发表评论,评论将实时展示
+同时发表框内容清空
